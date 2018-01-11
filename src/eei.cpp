@@ -214,6 +214,8 @@ inline int64_t maxCallGas(int64_t gas) {
       HERA_DEBUG << "useGas " << gas << "\n";
 
       takeGas(gas);
+      // FIXME: this may overflow
+      takeGas(gas * memory.size() / GasSchedule::memoryPageSize * GasSchedule::memoryCostPerPage);
 
       return Literal();
     }
