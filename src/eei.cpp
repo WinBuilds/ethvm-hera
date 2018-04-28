@@ -214,8 +214,9 @@ inline int64_t maxCallGas(int64_t gas) {
       HERA_DEBUG << "useGas " << gas << "\n";
 
       takeGas(gas);
-      // FIXME: this may overflow
-      takeGas(gas * memory.size() / GasSchedule::memoryPageSize * GasSchedule::memoryCostPerPage);
+
+      heraAssert((ffsl(gas) + ffsl(memory.size()) <= 64), "Memory gas calculation overflow."); //may need to find alternative to ffsl for cross-libc portability
+      takeGas(gas * memory.size() / GasSchedule::memoryPageSize * GasSchedule::memoryCostPerPage + 1); //round gas cost up
 
       return Literal();
     }
