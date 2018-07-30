@@ -330,9 +330,7 @@ void execute(
   EthereumInterface interface(context, state_code, msg, result, meterInterfaceGas);
   ModuleInstance instance(module, &interface);
 
-  Name main = Name("main");
-  LiteralList args;
-  instance.callExport(main, args);
+  instance.callExport(Name("main"), LiteralList{});
 }
 
 void hera_destroy_result(evmc_result const* result) noexcept
