@@ -60,6 +60,56 @@ struct hera_instance : evmc_instance {
 
 namespace {
 
+#include <wabt/binary-writer.h>
+#include <wabt/common.h>
+#include <wabt/error-handler.h>
+#include <wabt/feature.h>
+#include <wabt/filenames.h>
+#include <wabt/ir.h>
+#include <wabt/option-parser.h>
+#include <wabt/resolve-names.h>
+#include <wabt/stream.h>
+#include <wabt/validator.h>
+#include <wabt/wast-parser.h>
+
+using namespace wabt;
+
+void wat2wasm() {
+  std::unique_ptr<wabt::WastLexer> lexer = wabt::WastLexer::CreateFileLexer(s_infile);
+
+  wabt::Features s_features;
+
+  wabt::ErrorHandlerFile error_handler(wabt::Location::Type::Text);
+  std::unique_ptr<wabt::Module> module;
+  wabt::WastParseOptions parse_wast_options(s_features);
+  wabt::Result result =
+      wabt::ParseWatModule(lexer.get(), &module, &error_handler, &parse_wast_options);
+
+  if (wabt::Succeeded(result)) {
+    result = wabt::ResolveNamesModule(lexer.get(), module.get(), &error_handler);
+
+    if (wabt::Succeeded(result) && s_validate) {
+      wabt::ValidateOptions options(s_features);
+      result =
+          wabt::ValidateModule(lexer.get(), module.get(), &error_handler, &options);
+    }
+
+    if (wabt::Succeeded(result)) {
+      wabt::FileStream s_log_stream;
+      wabt::MemoryStream stream(s_log_stream);
+      result =
+          wabt::WriteBinaryModule(&stream, module.get(), &s_write_binary_options);
+
+      if (wabt::Succeeded(result)) {
+//        if (s_outfile.empty()) {
+//          s_outfile = DefaultOuputName(s_infile);
+//        }
+//        WriteBufferToFile(s_outfile.c_str(), stream.output_buffer());
+      }
+    }
+  }
+}
+
 bool hasWasmPreamble(vector<uint8_t> const& _input) {
   return
     _input.size() >= 8 &&
