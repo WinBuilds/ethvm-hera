@@ -29,6 +29,18 @@
 #include <wasm-printing.h>
 #include <wasm-validator.h>
 
+#include <src/binary-writer.h>
+#include <src/common.h>
+#include <src/error-handler.h>
+#include <src/feature.h>
+#include <src/filenames.h>
+#include <src/ir.h>
+#include <src/option-parser.h>
+#include <src/resolve-names.h>
+#include <src/stream.h>
+#include <src/validator.h>
+#include <src/wast-parser.h>
+
 #include <evmc/evmc.h>
 
 #include <evm2wasm.h>
@@ -58,24 +70,8 @@ struct hera_instance : evmc_instance {
   hera_instance() : evmc_instance({EVMC_ABI_VERSION, "hera", "0.0.0", nullptr, nullptr, nullptr, nullptr}) {}
 };
 
-namespace {
-
-#include <wabt/binary-writer.h>
-#include <wabt/common.h>
-#include <wabt/error-handler.h>
-#include <wabt/feature.h>
-#include <wabt/filenames.h>
-#include <wabt/ir.h>
-#include <wabt/option-parser.h>
-#include <wabt/resolve-names.h>
-#include <wabt/stream.h>
-#include <wabt/validator.h>
-#include <wabt/wast-parser.h>
-
-using namespace wabt;
-
 void wat2wasm() {
-  std::unique_ptr<wabt::WastLexer> lexer = wabt::WastLexer::CreateFileLexer(s_infile);
+  std::unique_ptr<wabt::WastLexer> lexer = wabt::WastLexer::CreateFileLexer({});
 
   wabt::Features s_features;
 
@@ -88,17 +84,17 @@ void wat2wasm() {
   if (wabt::Succeeded(result)) {
     result = wabt::ResolveNamesModule(lexer.get(), module.get(), &error_handler);
 
-    if (wabt::Succeeded(result) && s_validate) {
+    if (wabt::Succeeded(result)) {
       wabt::ValidateOptions options(s_features);
       result =
           wabt::ValidateModule(lexer.get(), module.get(), &error_handler, &options);
     }
 
     if (wabt::Succeeded(result)) {
-      wabt::FileStream s_log_stream;
-      wabt::MemoryStream stream(s_log_stream);
+      wabt::FileStream s_log_stream{wabt::string_view{}, nullptr};
+      wabt::MemoryStream stream(&s_log_stream);
       result =
-          wabt::WriteBinaryModule(&stream, module.get(), &s_write_binary_options);
+          wabt::WriteBinaryModule(&stream, module.get(), nullptr);
 
       if (wabt::Succeeded(result)) {
 //        if (s_outfile.empty()) {
@@ -109,6 +105,8 @@ void wat2wasm() {
     }
   }
 }
+
+namespace {
 
 bool hasWasmPreamble(vector<uint8_t> const& _input) {
   return
