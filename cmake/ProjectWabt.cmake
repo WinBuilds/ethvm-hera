@@ -26,7 +26,7 @@ ExternalProject_Add(wabt
     -DCMAKE_BUILD_TYPE=Release
     -DBUILD_TESTS=OFF
     -DCMAKE_INSTALL_LIBDIR=lib
-    BUILD_BYPRODUCTS ${binaryen_library} ${binaryen_other_libraries}
+    BUILD_BYPRODUCTS ${wabt_library}
 )
 
 add_library(wabt::wabt STATIC IMPORTED)
