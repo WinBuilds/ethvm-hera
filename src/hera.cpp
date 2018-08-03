@@ -54,6 +54,7 @@ enum hera_evm_mode {
 struct hera_instance : evmc_instance {
   hera_evm_mode evm_mode = EVM_REJECT;
   bool metering = false;
+  vector<pair<evmc_address, string>> contract_preload_list;
 
   hera_instance() : evmc_instance({EVMC_ABI_VERSION, "hera", "0.0.0", nullptr, nullptr, nullptr, nullptr}) {}
 };
@@ -450,6 +451,66 @@ evmc_result hera_execute(
   return ret;
 }
 
+// we aren't at c++17 yet so a pair will be used rather than std::optional
+pair<evmc_address, bool> resolve_alias_to_address(string const& alias) {
+  map<string, evmc_address> alias_to_addr_map = {
+    { string("sentinel"), { .bytes = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xa } } },
+    { string("evm2wasm"), { .bytes = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xb } } }
+  };
+
+  evmc_address ret = { .bytes = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
+  bool status = false;
+  
+  if (alias_to_addr_map.count(alias) != 0) {
+    ret = alias_to_addr_map[alias];
+    status = true;
+  }
+
+  return pair<evmc_address, bool>(ret, status);
+}
+
+pair<evmc_address, bool> parse_hex_addr(string const& addr) {
+  evmc_address ret = { .bytes = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
+
+  if (addr.substr(0, 2).compare("0x") != 0) { 
+    cerr << addr << ": "; 
+    heraAssert(false, "Invalid address!");
+  }
+
+  string addr_raw = addr.substr(2, string::npos);
+  
+  heraAssert(addr_raw.length() == 40, "Address specified is of incorrect length!");
+
+  for (size_t i = 0; i < 20; i++) {
+    std::string byte_str = addr_raw.substr((i * 2), 2);
+    uint8_t byte = uint8_t(strtol(byte_str.c_str(), nullptr, 16));
+    ret.bytes[i] = byte;
+  }
+
+  return pair<evmc_address, bool>(ret, true);
+}
+
+bool parse_preload_addr(const char *name)
+{
+  assert(name != nullptr);
+
+  string evmc_option_raw = string(name);
+  
+  //Check the "sys:" syntax by comparing substring
+  if (evmc_option_raw.length() < 4 
+    || evmc_option_raw.substr(0, 3).compare("sys:") != 0) 
+    return false;
+  
+  //Parse the address field from the option name and try to resolve to an alias
+  string opt_address_to_load = evmc_option_raw.substr(4, string::npos);
+
+  pair<evmc_address, bool> resolution_result = resolve_alias_to_address(opt_address_to_load);
+
+  evmc_address dest_addr = (resolution_result.second) ? resolution_result.first : parse_hex_addr(opt_address_to_load).first;
+
+  return true;
+}
+
 int hera_set_option(
   evmc_instance *instance,
   char const *name,
@@ -496,6 +557,7 @@ int hera_set_option(
     hera->metering = strcmp(value, "true") == 0;
     return 1;
   }
+
   return 0;
 }
 
