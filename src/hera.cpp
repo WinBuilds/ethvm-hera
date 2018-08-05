@@ -74,6 +74,40 @@ bool hasWasmPreamble(vector<uint8_t> const& _input) {
     _input[7] == 0;
 }
 
+bool deploySystemContract(string & code, evmc_address addr) {
+  evmc_message create_message;
+  create_message.input_data = reinterpret_cast<const uint8_t *>(code.c_str());
+  create_message.destination = addr;
+
+  //Prepare message call to deploy system contract
+ 
+  return true;
+}
+
+void preloadSystemContracts(hera_instance *hera) {
+  auto const& list = hera->contract_preload_list;
+
+  //Iterate through every entry on the contract preload list and deploy the code at the address from the filepath
+  for (size_t i = 0; i < list.size(); ++i) {
+    ifstream path;
+    path.open(list[i].second, ios::in | ios::binary);
+
+    if (path.is_open()) {
+#if HERA_DEBUGGING
+      cerr << "Loading code at " << list[i].second << " into address " << hex << list[i].first.bytes << dec << endl;
+#endif
+      string bytecode((istreambuf_iterator<char>(path)),
+        istreambuf_iterator<char>());
+      deploySystemContract(bytecode, list[i].first);
+    } else {
+#if HERA_DEBUGGING
+      cerr << "Could not open filepath " << list[i].second << endl;
+#endif
+      continue;
+    }
+  }
+}
+
 vector<uint8_t> callSystemContract(
   evmc_context* context,
   evmc_address const& address,
@@ -332,6 +366,8 @@ evmc_result hera_execute(
 ) noexcept {
   hera_instance* hera = static_cast<hera_instance*>(instance);
 
+  preloadSystemContracts(hera);
+
   evmc_result ret;
   memset(&ret, 0, sizeof(evmc_result));
 
@@ -458,7 +494,7 @@ pair<evmc_address, bool> resolve_alias_to_address(string const& alias) {
     { string("evm2wasm"), { .bytes = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xb } } }
   };
 
-  evmc_address ret = { .bytes = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
+  evmc_address ret = {};
   bool status = false;
   
   if (alias_to_addr_map.count(alias) != 0) {
@@ -475,7 +511,7 @@ pair<evmc_address, bool> resolve_alias_to_address(string const& alias) {
 }
 
 pair<evmc_address, bool> parse_hex_addr(string const& addr) {
-  evmc_address ret = { .bytes = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
+  evmc_address ret = {};
   
 #if HERA_DEBUGGING
   cerr << "Trying to parse address field" << endl;
@@ -504,7 +540,7 @@ pair<evmc_address, bool> parse_preload_addr(const char *name)
 {
   assert(name != nullptr);
   
-  pair<evmc_address, bool> ret = { { .bytes = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } }, false };
+  pair<evmc_address, bool> ret = { {}, false };
   string evmc_option_raw = string(name);
   
   //Check the "sys:" syntax by comparing substring
