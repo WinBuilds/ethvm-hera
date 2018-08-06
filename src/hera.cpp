@@ -74,17 +74,29 @@ bool hasWasmPreamble(vector<uint8_t> const& _input) {
     _input[7] == 0;
 }
 
-bool deploySystemContract(string & code, evmc_address addr) {
-  evmc_message create_message;
-  create_message.input_data = reinterpret_cast<const uint8_t *>(code.c_str());
-  create_message.destination = addr;
+bool deploySystemContract(string & code, evmc_address addr, evmc_context *context) {
+  evmc_message create_message = {
+    .destination = addr,
+    .sender = {},
+    .value = {},
+    .input_data = reinterpret_cast<const uint8_t *>(code.c_str()),
+    .input_size = code.size(),
+    .code_hash = {},
+    .create2_salt = {},
+    .gas = numeric_limits<int64_t>::max(),    
+    .depth = 0,
+    .kind = EVMC_CREATE,
+    .flags = 0,
+  };
 
-  //Prepare message call to deploy system contract
+  evmc_result create_result;
+
+  context->fn_table->call(&create_result, context, &create_message);
  
-  return true;
+  return (create_result.status_code == EVMC_SUCCESS) ? true : false;
 }
 
-void preloadSystemContracts(hera_instance *hera) {
+void preloadSystemContracts(hera_instance *hera, evmc_context *context) {
   auto const& list = hera->contract_preload_list;
 
   //Iterate through every entry on the contract preload list and deploy the code at the address from the filepath
@@ -98,7 +110,7 @@ void preloadSystemContracts(hera_instance *hera) {
 #endif
       string bytecode((istreambuf_iterator<char>(path)),
         istreambuf_iterator<char>());
-      deploySystemContract(bytecode, list[i].first);
+      deploySystemContract(bytecode, list[i].first, context);
     } else {
 #if HERA_DEBUGGING
       cerr << "Could not open filepath " << list[i].second << endl;
@@ -366,7 +378,7 @@ evmc_result hera_execute(
 ) noexcept {
   hera_instance* hera = static_cast<hera_instance*>(instance);
 
-  preloadSystemContracts(hera);
+  preloadSystemContracts(hera, context);
 
   evmc_result ret;
   memset(&ret, 0, sizeof(evmc_result));
