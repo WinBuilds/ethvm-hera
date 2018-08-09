@@ -681,6 +681,34 @@ inline int64_t maxCallGas(int64_t gas) {
         dataLength = arguments[3].geti32();
       }
 
+      return Literal(eeiCall(kind, gas, addressOffset, valueOffset, dataOffset, dataLength));
+    }
+
+    if (import->base == Name("create")) {
+      heraAssert(arguments.size() == 4, string("Argument count mismatch in: ") + import->base.str);
+
+      uint32_t valueOffset = arguments[0].geti32();
+      uint32_t dataOffset = arguments[1].geti32();
+      uint32_t length = arguments[2].geti32();
+      uint32_t resultOffset = arguments[3].geti32();
+
+      return Literal(eeiCreate(valueOffset, dataOffset, length, resultOffset));
+    }
+
+    if (import->base == Name("selfDestruct")) {
+      heraAssert(arguments.size() == 1, string("Argument count mismatch in: ") + import->base.str);
+
+      uint32_t addressOffset = arguments[0].geti32();
+      eeiSelfDestruct(addressOffset);
+
+      return Literal();
+    }
+
+    heraAssert(false, string("Unsupported import called: ") + import->module.str + "::" + import->base.str + " (" + to_string(arguments.size()) + "arguments)");
+  }
+
+  uint32_t EthereumInterface::eeiCall(EEICallKind kind, int64_t gas, uint32_t addressOffset, uint32_t valueOffset, uint32_t dataOffset, uint32_t dataLength)
+  {
       heraAssert((msg.flags & ~EVMC_STATIC) == 0, "Unknown flags not supported.");
 
       evmc_message call_message;
@@ -792,16 +820,10 @@ inline int64_t maxCallGas(int64_t gas) {
       default:
         return Literal(uint32_t(1));
       }
-    }
+  }
 
-    if (import->base == Name("create")) {
-      heraAssert(arguments.size() == 4, string("Argument count mismatch in: ") + import->base.str);
-
-      uint32_t valueOffset = arguments[0].geti32();
-      uint32_t dataOffset = arguments[1].geti32();
-      uint32_t length = arguments[2].geti32();
-      uint32_t resultOffset = arguments[3].geti32();
-
+  uint32_t EthereumInterface::eeiCreate(uint32_t valueOffset, uint32_t dataOffset, uint32_t length, uint32_t resultOffset)
+  {
       HERA_DEBUG << "create " << hex << valueOffset << " " << dataOffset << " " << length << dec << " " << resultOffset << dec << "\n";
 
       ensureCondition(!(msg.flags & EVMC_STATIC), StaticModeViolation, "create");
@@ -813,7 +835,7 @@ inline int64_t maxCallGas(int64_t gas) {
       create_message.value = loadUint128(valueOffset);
 
       if ((msg.depth >= 1024) || !enoughSenderBalanceFor(create_message.value))
-        return Literal(uint32_t(1));
+        return 1;
 
       // NOTE: this must be declared outside the condition to ensure the memory doesn't go out of scope
       vector<uint8_t> contract_code;
@@ -859,19 +881,16 @@ inline int64_t maxCallGas(int64_t gas) {
 
       switch (create_result.status_code) {
       case EVMC_SUCCESS:
-        return Literal(uint32_t(0));
+        return 0;
       case EVMC_REVERT:
-        return Literal(uint32_t(2));
+        return 2;
       default:
-        return Literal(uint32_t(1));
+        return 1;
       }
-    }
+  }
 
-    if (import->base == Name("selfDestruct")) {
-      heraAssert(arguments.size() == 1, string("Argument count mismatch in: ") + import->base.str);
-
-      uint32_t addressOffset = arguments[0].geti32();
-
+  void EthereumInterface::eeiSelfDestruct(uint32_t addressOffset)
+  {
       HERA_DEBUG << "selfDestruct " << hex << addressOffset << dec << "\n";
 
       ensureCondition(!(msg.flags & EVMC_STATIC), StaticModeViolation, "selfDestruct");
@@ -882,11 +901,6 @@ inline int64_t maxCallGas(int64_t gas) {
         takeInterfaceGas(GasSchedule::callNewAccount);
       takeInterfaceGas(GasSchedule::selfdestruct);
       context->fn_table->selfdestruct(context, &msg.destination, &address);
-
-      return Literal();
-    }
-
-    heraAssert(false, string("Unsupported import called: ") + import->module.str + "::" + import->base.str + " (" + to_string(arguments.size()) + "arguments)");
   }
 
   void EthereumInterface::takeGas(uint64_t gas)

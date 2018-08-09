@@ -75,6 +75,13 @@ private:
     CallStatic
   };
 
+  // EEI methods
+
+  uint32_t eeiCreate(uint32_t valueOffset, uint32_t dataOffset, uint32_t length, uint32_t resultOffset);
+  void eeiSelfDestruct(uint32_t addressOffset);
+
+  // Helpers methods
+
   void takeGas(uint64_t gas);
   void takeInterfaceGas(uint64_t gas);
 
