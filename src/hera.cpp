@@ -17,21 +17,27 @@
 #include <vector>
 #include <stdexcept>
 #include <cstdlib>
-#include <unistd.h>
 #include <string.h>
 #include <fstream>
+#include <sstream>
 
-#include <pass.h>
-#include <wasm.h>
-#include <wasm-binary.h>
-#include <wasm-builder.h>
-#include <wasm-interpreter.h>
-#include <wasm-printing.h>
-#include <wasm-validator.h>
+
+#ifdef HAVE_UNISTD
+#include <unistd.h>
+#endif
+
+#include <io.h>
+
+#include <binaryen/pass.h>
+#include <binaryen/wasm.h>
+#include <binaryen/wasm-binary.h>
+#include <binaryen/wasm-builder.h>
+#include <binaryen/wasm-interpreter.h>
+#include <binaryen/wasm-printing.h>
+#include <binaryen/wasm-validator.h>
 
 #include <evmc/evmc.h>
-
-#include <evm2wasm.h>
+#include <evmc/evm2wasm.h>
 
 #include "hera.h"
 #include "eei.h"
@@ -90,17 +96,17 @@ vector<uint8_t> callSystemContract(
   vector<uint8_t> const& input
 ) {
   evmc_message message = {
-    .destination = address,
-    .sender = {},
-    .value = {},
-    .input_data = input.data(),
-    .input_size = input.size(),
-    .code_hash = {},
-    .create2_salt = {},
-    .gas = gas,
-    .depth = 0,
-    .kind = EVMC_CALL,
-    .flags = EVMC_STATIC
+    /*.destination = */ address,
+    /* .sender = */ {},
+    /* .value = */ {},
+    /* .input_data = */ input.data(),
+    /* .input_size = */ input.size(),
+    /* .code_hash = */ {},
+    /* .create2_salt = */ {},
+    /* .gas = */ gas,
+    /*.depth = */ 0,
+    /* .kind = */ EVMC_CALL,
+    /* .flags = */ EVMC_STATIC
   };
 
   evmc_result result;
@@ -129,8 +135,9 @@ vector<uint8_t> sentinel(evmc_context* context, vector<uint8_t> const& input)
   int64_t startgas = numeric_limits<int64_t>::max(); // do not charge for metering yet (give unlimited gas)
   int64_t gas = startgas;
   vector<uint8_t> ret = callSystemContract(
-    context,
-    { .bytes = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xa } }, // precompile address 0x00...0a
+    context, { 
+       /*.bytes =*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xa } 
+    }, // precompile address 0x00...0a
     gas,
     input
   );
@@ -144,12 +151,11 @@ vector<uint8_t> sentinel(evmc_context* context, vector<uint8_t> const& input)
 
 // NOTE: assumes that pattern doesn't contain any formatting characters (e.g. %)
 string mktemp_string(string pattern) {
-  const unsigned long len = pattern.size();
-  char tmp[len + 1];
+  char* tmp = new char(pattern.size() + 1);
   strcpy(tmp, pattern.data());
-  if (!mktemp(tmp) || (tmp[0] == 0))
-     return string();
-  return string(tmp, strlen(tmp));
+  string s = ((mktemp(tmp) && strlen(tmp))) ? string(tmp, strlen(tmp)) : string();
+  delete tmp;
+  return s;
 }
 
 // Calls evm2wasm (as a Javascript CLI) with input data @input.
@@ -233,7 +239,7 @@ vector<uint8_t> evm2wasm(evmc_context* context, vector<uint8_t> const& input) {
   int64_t gas = startgas;
   vector<uint8_t> ret = callSystemContract(
     context,
-    { .bytes = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xb } }, // precompile address 0x00...0b
+    { /*.bytes =*/ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xb } }, // precompile address 0x00...0b
     gas,
     input
   );
@@ -267,6 +273,13 @@ void validate_contract(Module & module)
   );
 
   for (auto const& import: module.imports) {
+     ensureCondition(
+        import->module == Name("ethereum"),
+        ContractValidationFailure,
+        "Import from invalid namespace."
+     );
+
+     /*
     ensureCondition(
       import->module == Name("ethereum")
 #if HERA_DEBUGGING
@@ -275,7 +288,8 @@ void validate_contract(Module & module)
       ,
       ContractValidationFailure,
       "Import from invalid namespace."
-    );
+    );*/
+
   }
 }
 

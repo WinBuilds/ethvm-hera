@@ -16,16 +16,38 @@
 
 #pragma once
 
-#include <wasm.h>
-#include <wasm-binary.h>
+#include <binaryen/wasm.h>
+#include <binaryen/wasm-binary.h>
 #include <evmc/evmc.h>
 #include "shell-interface.h"
 #include "hera.h"
 #include "exceptions.h"
 
+extern int ffs(unsigned i);
+
 using namespace wasm;
 
 namespace HeraVM {
+
+#ifdef HAVE_INT128
+#define evmc_uint128 unsigned __int128
+#else
+#define evmc_uint128 evmc_uint128be
+
+typedef struct _evmc_uint128be {
+   uint8_t bytes[16];
+
+   // TODO implement these operators
+   bool operator <= (struct _evmc_uint128be& rhs) {
+      return false;/// Not implemented
+   }
+   bool operator >= (struct _evmc_uint128be& rhs) {
+      return false;/// Not implemented
+   }
+} evmc_uint128be;
+
+#endif
+
 
 struct ExecutionResult {
   uint64_t gasLeft = 0;
@@ -97,7 +119,7 @@ private:
 
   bool enoughSenderBalanceFor(evmc_uint256be const& value) const;
 
-  static unsigned __int128 safeLoadUint128(evmc_uint256be const& value);
+  static evmc_uint128 safeLoadUint128(evmc_uint256be const& value);
 
   /* Checks if host supplied 256 bit value exceeds UINT64_MAX */
   static bool exceedsUint64(evmc_uint256be const& value);

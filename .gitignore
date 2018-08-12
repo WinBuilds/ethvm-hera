@@ -10,7 +10,7 @@ compile_commands.json
 CTestTestfile.cmake
 
 # CMake build dir
-/build
+build*/
 
 # IntelliJ
 /.idea
@@ -20,3 +20,13 @@ CTestTestfile.cmake
 
 # Vim swap files
 **/*.swp
+
+# Windows Explorer
+*.lnk
+
+# Visual Studio
+*.aps
+*.VC.db
+*.VC.opendb
+.vs/
+ipch/

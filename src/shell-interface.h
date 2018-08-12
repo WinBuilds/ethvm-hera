@@ -21,8 +21,8 @@
 #ifndef wasm_shell_interface_h
 #define wasm_shell_interface_h
 
-#include <wasm.h>
-#include <wasm-interpreter.h>
+#include <binaryen/wasm.h>
+#include <binaryen/wasm-interpreter.h>
 
 namespace wasm {
 

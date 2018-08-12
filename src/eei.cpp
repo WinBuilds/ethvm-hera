@@ -56,6 +56,28 @@ inline int64_t maxCallGas(int64_t gas) {
   return gas - (gas / 64);
 }
 
+#ifndef HAVE_FFS
+
+#ifdef _MSC_VER
+#include <intrin.h>
+int ffs(unsigned val) {
+   unsigned long idx = 0;
+   return _BitScanForward(&idx, (unsigned long)val) ? (int)(1 + idx) : 0;
+}
+#else
+int ffs(unsigned val) {
+   unsigned idx = 0;
+
+   if (val)
+      for (idx = 1; !(val & 1); idx++)
+         val >>= 1;
+
+   return idx;
+}
+#endif
+
+#endif
+
 }
 
   void EthereumInterface::importGlobals(std::map<Name, Literal>& globals, Module& wasm) {
@@ -1019,15 +1041,11 @@ inline int64_t maxCallGas(int64_t gas) {
     return safeLoadUint128(balance) >= safeLoadUint128(value);
   }
 
-  unsigned __int128 EthereumInterface::safeLoadUint128(evmc_uint256be const& value)
-  {
-    // TODO: use a specific error code here?
-    ensureCondition(!exceedsUint128(value), OutOfGas, "Value exceeds 128 bits.");
-    unsigned __int128 ret = 0;
-    for (unsigned i = 16; i < 32; i++) {
-      ret <<= 8;
-      ret |= value.bytes[i];
-    }
+  evmc_uint128 EthereumInterface::safeLoadUint128(evmc_uint256be const& value) {
+    ensureCondition(!exceedsUint128(value), OutOfGas, "Value exceeds 128 bits.");    
+    evmc_uint128 ret = { 0, };
+    for (int i = 0; i < 16; i++)
+       ret.bytes[i]= value.bytes[i+16];
     return ret;
   }
 
