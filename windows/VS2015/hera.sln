@@ -3,7 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hera", "hera.vcxproj", "{94BE30B7-66DA-4DD9-A03B-9B70FF89F256}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "heralib", "hera.vcxproj", "{94BE30B7-66DA-4DD9-A03B-9B70FF89F256}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "heradll", "heradll.vcxproj", "{823FF101-BEB0-41F9-BF87-3F0A21581D49}"
+	ProjectSection(ProjectDependencies) = postProject
+		{94BE30B7-66DA-4DD9-A03B-9B70FF89F256} = {94BE30B7-66DA-4DD9-A03B-9B70FF89F256}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +26,14 @@ Global
 		{94BE30B7-66DA-4DD9-A03B-9B70FF89F256}.Release|x64.Build.0 = Release|x64
 		{94BE30B7-66DA-4DD9-A03B-9B70FF89F256}.Release|x86.ActiveCfg = Release|Win32
 		{94BE30B7-66DA-4DD9-A03B-9B70FF89F256}.Release|x86.Build.0 = Release|Win32
+		{823FF101-BEB0-41F9-BF87-3F0A21581D49}.Debug|x64.ActiveCfg = Debug|x64
+		{823FF101-BEB0-41F9-BF87-3F0A21581D49}.Debug|x64.Build.0 = Debug|x64
+		{823FF101-BEB0-41F9-BF87-3F0A21581D49}.Debug|x86.ActiveCfg = Debug|Win32
+		{823FF101-BEB0-41F9-BF87-3F0A21581D49}.Debug|x86.Build.0 = Debug|Win32
+		{823FF101-BEB0-41F9-BF87-3F0A21581D49}.Release|x64.ActiveCfg = Release|x64
+		{823FF101-BEB0-41F9-BF87-3F0A21581D49}.Release|x64.Build.0 = Release|x64
+		{823FF101-BEB0-41F9-BF87-3F0A21581D49}.Release|x86.ActiveCfg = Release|Win32
+		{823FF101-BEB0-41F9-BF87-3F0A21581D49}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

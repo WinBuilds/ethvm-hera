@@ -29,34 +29,33 @@
     <ClInclude Include="..\..\src\shell-interface.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{94BE30B7-66DA-4DD9-A03B-9B70FF89F256}</ProjectGuid>
+    <ProjectGuid>{823FF101-BEB0-41F9-BF87-3F0A21581D49}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>hera</RootNamespace>
+    <RootNamespace>heradll</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>heralib</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -81,86 +80,74 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)../../../../build_msvc14_$(Platform)/$(Configuration)/lib/</OutDir>
+    <LinkIncremental>true</LinkIncremental>
     <IntDir>$(SolutionDir)../../../../build_msvc14_$(Platform)/$(Configuration)/obj/$(ProjectName)/</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)../../../../build_msvc14_$(Platform)/$(Configuration)/lib/</OutDir>
-    <IntDir>$(SolutionDir)../../../../build_msvc14_$(Platform)/$(Configuration)/obj/$(ProjectName)/</IntDir>
+    <OutDir>$(SolutionDir)../../../../build_msvc14_$(Platform)/$(Configuration)/bin/</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)../../../../build_msvc14_$(Platform)/$(Configuration)/lib/</OutDir>
+    <LinkIncremental>true</LinkIncremental>
     <IntDir>$(SolutionDir)../../../../build_msvc14_$(Platform)/$(Configuration)/obj/$(ProjectName)/</IntDir>
+    <OutDir>$(SolutionDir)../../../../build_msvc14_$(Platform)/$(Configuration)/bin/</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <IntDir>$(SolutionDir)../../../../build_msvc14_$(Platform)/$(Configuration)/obj/$(ProjectName)/</IntDir>
+    <OutDir>$(SolutionDir)../../../../build_msvc14_$(Platform)/$(Configuration)/bin/</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)../../../../build_msvc14_$(Platform)/$(Configuration)/lib/</OutDir>
+    <LinkIncremental>false</LinkIncremental>
     <IntDir>$(SolutionDir)../../../../build_msvc14_$(Platform)/$(Configuration)/obj/$(ProjectName)/</IntDir>
+    <OutDir>$(SolutionDir)../../../../build_msvc14_$(Platform)/$(Configuration)/bin/</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level1</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;HERA_DEBUGGING=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\src;$(OutDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;HERADLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\src;$(OutDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4101;4244;4267;4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib>
-      <AdditionalDependencies>binaryenlib.lib;ethvm2ewasmlib.lib;ethvmapilib.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Lib>
-    <Lib>
+      <ImportLibrary>$(OutDir)..\lib\$(TargetName).lib</ImportLibrary>
       <AdditionalLibraryDirectories>$(OutDir)..\lib</AdditionalLibraryDirectories>
-    </Lib>
-    <PostBuildEvent>
-      <Message>copying include header files..</Message>
-      <Command>mkdir "$(SolutionDir)..\..\..\..\build_msvc14_$(Platform)\$(Configuration)\include\evmhera"
-xcopy "$(SolutionDir)..\..\src\*.h" "$(SolutionDir)..\..\..\..\build_msvc14_$(Platform)\$(Configuration)\include\evmhera\" /E /I /R /Y /D</Command>
-    </PostBuildEvent>
+      <AdditionalDependencies>binaryenlib.lib;ethvm2ewasmlib.lib;ethvmapilib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level1</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_LIB;HERA_DEBUGGING=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\src;$(OutDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;HERADLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\src;$(OutDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4101;4244;4267;4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib>
-      <AdditionalDependencies>binaryenlib.lib;ethvm2ewasmlib.lib;ethvmapilib.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Lib>
-    <Lib>
+      <ImportLibrary>$(OutDir)..\lib\$(TargetName).lib</ImportLibrary>
       <AdditionalLibraryDirectories>$(OutDir)..\lib</AdditionalLibraryDirectories>
-    </Lib>
-    <PostBuildEvent>
-      <Message>copying include header files..</Message>
-      <Command>mkdir "$(SolutionDir)..\..\..\..\build_msvc14_$(Platform)\$(Configuration)\include\evmhera"
-xcopy "$(SolutionDir)..\..\src\*.h" "$(SolutionDir)..\..\..\..\build_msvc14_$(Platform)\$(Configuration)\include\evmhera\" /E /I /R /Y /D</Command>
-    </PostBuildEvent>
+      <AdditionalDependencies>binaryenlib.lib;ethvm2ewasmlib.lib;ethvmapilib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level1</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\src;$(OutDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;HERADLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\src;$(OutDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4101;4244;4267;4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
@@ -168,30 +155,22 @@ xcopy "$(SolutionDir)..\..\src\*.h" "$(SolutionDir)..\..\..\..\build_msvc14_$(Pl
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib>
-      <AdditionalDependencies>binaryenlib.lib;ethvm2ewasmlib.lib;ethvmapilib.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Lib>
-    <Lib>
+      <ImportLibrary>$(OutDir)..\lib\$(TargetName).lib</ImportLibrary>
       <AdditionalLibraryDirectories>$(OutDir)..\lib</AdditionalLibraryDirectories>
-    </Lib>
-    <PostBuildEvent>
-      <Message>copying include header files..</Message>
-      <Command>mkdir "$(SolutionDir)..\..\..\..\build_msvc14_$(Platform)\$(Configuration)\include\evmhera"
-xcopy "$(SolutionDir)..\..\src\*.h" "$(SolutionDir)..\..\..\..\build_msvc14_$(Platform)\$(Configuration)\include\evmhera\" /E /I /R /Y /D</Command>
-    </PostBuildEvent>
+      <AdditionalDependencies>binaryenlib.lib;ethvm2ewasmlib.lib;ethvmapilib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level1</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\src;$(OutDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;HERADLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\src;$(OutDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4101;4244;4267;4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
@@ -199,18 +178,10 @@ xcopy "$(SolutionDir)..\..\src\*.h" "$(SolutionDir)..\..\..\..\build_msvc14_$(Pl
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib>
-      <AdditionalDependencies>binaryenlib.lib;ethvm2ewasmlib.lib;ethvmapilib.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Lib>
-    <Lib>
+      <ImportLibrary>$(OutDir)..\lib\$(TargetName).lib</ImportLibrary>
       <AdditionalLibraryDirectories>$(OutDir)..\lib</AdditionalLibraryDirectories>
-    </Lib>
-    <PostBuildEvent>
-      <Message>copying include header files..</Message>
-      <Command>mkdir "$(SolutionDir)..\..\..\..\build_msvc14_$(Platform)\$(Configuration)\include\evmhera"
-xcopy "$(SolutionDir)..\..\src\*.h" "$(SolutionDir)..\..\..\..\build_msvc14_$(Platform)\$(Configuration)\include\evmhera\" /E /I /R /Y /D</Command>
-    </PostBuildEvent>
+      <AdditionalDependencies>binaryenlib.lib;ethvm2ewasmlib.lib;ethvmapilib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
